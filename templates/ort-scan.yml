@@ -332,9 +332,29 @@
 
       [[ ${ORT_CLI_ANALYZE_EXIT_CODE} -eq 1 ]] && exit 1
 
-    - ort-curations.py ${ORT_RESULTS_ANALYZER_PATH} -o ${ORT_RESULTS_ANALYZER_PATH}.curated
-    - mv ${ORT_RESULTS_ANALYZER_PATH} ${ORT_RESULTS_ANALYZER_PATH}.before_cure
-    - mv ${ORT_RESULTS_ANALYZER_PATH}.curated ${ORT_RESULTS_ANALYZER_PATH}
+    - ort-curations.py ${ORT_RESULTS_ANALYZER_PATH} -o ${ORT_CONFIG_PATH}/curations/custom-curations.yml
+
+    # Re-Run ORT's Analyzer after updating curations...
+    - |
+      echo -e "\e[1;33m Re-Running ORT Analyzer (after curations)... "
+      ${ORT_CLI} \
+      --${ORT_LOG_LEVEL} \
+      -P ort.analyzer.allowDynamicVersions=${ORT_ALLOW_DYNAMIC_VERSIONS} \
+      ${ORT_CLI_ARGS} \
+      analyze \
+      -i ${PROJECT_PATH} \
+      -o ${ORT_RESULTS_PATH} \
+      -f JSON \
+      ${ORT_CLI_ANALYZE_ARGS} \
+        || ORT_CLI_ANALYZE_EXIT_CODE=$? \
+        && export ORT_CLI_ANALYZE_EXIT_CODE="${ORT_CLI_ANALYZE_EXIT_CODE:-0}" \
+        && printenv >> vars.env
+
+      [[ -f ${ORT_RESULTS_ANALYZER_PATH} ]] \
+        && ln -frs $ORT_RESULTS_ANALYZER_PATH $ORT_RESULTS_CURRENT_PATH \
+        || echo -e "\e[1;31m File $ORT_RESULTS_ANALYZER_PATH not found."
+
+      [[ ${ORT_CLI_ANALYZE_EXIT_CODE} -eq 1 ]] && exit 1
 
     # Run ORT's Scanner to use configured source code scanners to detect license and copyright findings.
     - |
