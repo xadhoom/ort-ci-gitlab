@@ -332,8 +332,9 @@
 
       [[ ${ORT_CLI_ANALYZE_EXIT_CODE} -eq 1 ]] && exit 1
 
-    - ort-curations.py ${ORT_RESULTS_ANALYZER_PATH} -o ${ORT_RESULTS_ANALYZER_PATH}.tmp
-    - mv ${ORT_RESULTS_ANALYZER_PATH}.tmp ${ORT_RESULTS_ANALYZER_PATH}
+    - ort-curations.py ${ORT_RESULTS_ANALYZER_PATH} -o ${ORT_RESULTS_ANALYZER_PATH}.curated
+    - mv ${ORT_RESULTS_ANALYZER_PATH} ${ORT_RESULTS_ANALYZER_PATH}.before_cure
+    - mv ${ORT_RESULTS_ANALYZER_PATH}.curated ${ORT_RESULTS_ANALYZER_PATH}
 
     # Run ORT's Scanner to use configured source code scanners to detect license and copyright findings.
     - |
