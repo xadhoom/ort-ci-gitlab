@@ -332,6 +332,52 @@
 
       [[ ${ORT_CLI_ANALYZE_EXIT_CODE} -eq 1 ]] && exit 1
 
+    - |
+      jq '
+      walk(
+        if
+          type == "object"
+          and ((.id? // "") | startswith("github:"))
+          and ((.vcs_processed? | type) == "object")
+          and ((.vcs_processed.url // "") == "")
+        then
+          . as $package |
+          (.id | split(":")) as $parts |
+
+          if ($parts | length) == 4 then
+            .vcs = {
+              type: "Git",
+              url: (
+                "https://github.com/" +
+                $parts[1] + "/" +
+                $parts[2] + ".git"
+              ),
+              revision: $parts[3],
+              path: ($package.vcs.path // "")
+            }
+            |
+            .vcs_processed = {
+              type: "Git",
+              url: (
+                "https://github.com/" +
+                $parts[1] + "/" +
+                $parts[2] + ".git"
+              ),
+              revision: $parts[3],
+              path: ($package.vcs_processed.path // "")
+            }
+            |
+            .source_code_origins = ["VCS"]
+          else
+            .
+          end
+        else
+          .
+        end
+      )
+      ' ${ORT_RESULTS_ANALYZER_PATH} > ${ORT_RESULTS_ANALYZER_PATH}.tmp
+    - mv ${ORT_RESULTS_ANALYZER_PATH}.tmp ${ORT_RESULTS_ANALYZER_PATH}
+    
     # Run ORT's Scanner to use configured source code scanners to detect license and copyright findings.
     - |
       if [[ ${ORT_RUN_COMMANDS} == *"scanner"* ]]; then
