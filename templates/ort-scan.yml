@@ -246,6 +246,29 @@
           - type: DefaultDir
           - type: OrtConfig
             enabled: false
+
+        analyzer:
+          skipExcluded: true
+
+        scanner:
+          skipExcluded: true
+
+        excludes:
+          scopes:
+            # Yarn / Yarn 2+
+            - pattern: "^devDependencies$"
+              reason: "DEV_DEPENDENCY_OF"
+              comment: "Yarn dependencies used only during development."
+
+            # Cargo
+            - pattern: "^dev-dependencies$"
+              reason: "DEV_DEPENDENCY_OF"
+              comment: "Cargo dependencies used only for tests, examples, and benchmarks."
+
+            # Maven
+            - pattern: "^test$"
+              reason: "TEST_DEPENDENCY_OF"
+              comment: "Maven dependencies used only for testing."
       EOF
       else
       echo -e "\e[1;33m Using 'config.yml' from 'ort-config' repository..."
@@ -253,6 +276,7 @@
 
       ${ORT_CLI} config --show-active
 
+    - cat ${ORT_CONFIG_PATH}/config.yml
     # Generate labels to be passed as arguments to ORT Analyzer.
     # Labels can be used track scan related info or execute policy rules for specific product, delivery or organization.
     - |
